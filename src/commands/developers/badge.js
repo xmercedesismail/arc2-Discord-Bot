@@ -17,7 +17,6 @@ module.exports = async (client, interaction, args) => {
         PREMIUM: client.emotes.badges.premium,
         SUPPORTER: client.emotes.badges.supporter,
         TEAM: client.emotes.badges.team,
-        BOOSTER: client.emotes.badges.booster,
         PARTNER: client.emotes.badges.partner,
         VOTER: client.emotes.badges.voter,
         SUPPORT: client.emotes.badges.support,
@@ -51,11 +50,11 @@ module.exports = async (client, interaction, args) => {
 
             array.push(FLAG);
 
-            model.findOne({ User: member.id }, async (err, data) => {
-                if (err) console.log(err);
-                data.FLAGS = array
-                data.save();
-            });
+            const data = await model.findOne({ User: member.id });
+            if (data) {
+                data.FLAGS = array;
+                await data.save();
+            }
 
             client.succNormal({
                 text: `Added the ${badgeFlags[badge.toUpperCase()]} (${badge.toUpperCase()}) badge!`,
@@ -111,14 +110,11 @@ module.exports = async (client, interaction, args) => {
             }, interaction);
 
         } else {
-            model.findOne(
-                { User: member.id },
-                async (err, data) => {
-                    if (err) console.log(err);
-                    data.FLAGS = array
-                    data.save();
-                }
-            );
+            const data = await model.findOne({ User: member.id });
+            if (data) {
+                data.FLAGS = array;
+                await data.save();
+            }
             client.succNormal({
                 text: `Removed the ${badgeFlags[badge.toUpperCase()]} (${badge.toUpperCase()}) badge!`,
                 type: 'editreply'

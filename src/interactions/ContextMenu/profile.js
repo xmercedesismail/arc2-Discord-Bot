@@ -27,7 +27,6 @@ module.exports = {
             PREMIUM: client.emotes.badges.premium,
             SUPPORTER: client.emotes.badges.supporter,
             TEAM: client.emotes.badges.team,
-            BOOSTER: client.emotes.badges.booster,
             PARTNER: client.emotes.badges.partner,
             VOTER: client.emotes.badges.voter,
             SUPPORT: client.emotes.badges.support,
