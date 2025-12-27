@@ -6,7 +6,6 @@ module.exports = async (client, interaction, args) => {
 
     const target = interaction.options.getUser('user');
     const author = interaction.user;
-    const guild = { Guild: interaction.guild.id };
 
     if (author.id == target.id) return client.errNormal({
         error: "You cannot disown yourself",
@@ -34,11 +33,14 @@ module.exports = async (client, interaction, args) => {
             if (userData.Children.includes(target.username)) {
                 const filtered = userData.Children.filter((user) => user !== target.username);
 
-                await Schema.findOneAndUpdate(guild, {
-                    Guild: interaction.guild.id,
-                    User: author.id,
-                    Children: filtered
-                });
+                await Schema.findOneAndUpdate(
+                    { Guild: interaction.guild.id, User: author.id },
+                    {
+                        Guild: interaction.guild.id,
+                        User: author.id,
+                        Children: filtered
+                    }
+                );
 
                 const parentData = await Schema.findOne({ Guild: interaction.guild.id, Parent: author.id });
                 if (parentData) {

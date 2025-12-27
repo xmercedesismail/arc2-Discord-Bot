@@ -6,7 +6,6 @@ module.exports = async (client, interaction, args) => {
 
     const target = interaction.options.getUser('user');
     const author = interaction.user;
-    const guild = { Guild: interaction.guild.id };
 
     if (author.id == target.id) return client.errNormal({ error: "You cannot marry yourself!", type: 'editreply' }, interaction);
 
