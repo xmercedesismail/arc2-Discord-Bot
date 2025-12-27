@@ -62,33 +62,31 @@ module.exports = async (client, interaction, args) => {
     interaction.channel.awaitMessageComponent({ filter, componentType: Discord.ComponentType.Button, time: 60000 }).then(async i => {
         if (i.customId == "adopt_yes") {
 
-            Schema.findOne({ Guild: interaction.guild.id, User: author.id }, async (err, data) => {
-                if (data) {
-                    data.Children.push(target.username);
-                    data.save();
-                }
-                else {
-                    new Schema({
-                        Guild: interaction.guild.id,
-                        User: author.id,
-                        Children: target.username
-                    }).save();
-                }
-            })
+            const data = await Schema.findOne({ Guild: interaction.guild.id, User: author.id });
+            if (data) {
+                data.Children.push(target.username);
+                await data.save();
+            }
+            else {
+                await new Schema({
+                    Guild: interaction.guild.id,
+                    User: author.id,
+                    Children: target.username
+                }).save();
+            }
 
-            Schema.findOne({ Guild: interaction.guild.id, User: target.id }, async (err, data) => {
-                if (data) {
-                    data.Parent.push(author.username);
-                    data.save();
-                }
-                else {
-                    new Schema({
-                        Guild: interaction.guild.id,
-                        User: target.id,
-                        Parent: author.username
-                    }).save();
-                }
-            })
+            const targetData = await Schema.findOne({ Guild: interaction.guild.id, User: target.id });
+            if (targetData) {
+                targetData.Parent.push(author.username);
+                await targetData.save();
+            }
+            else {
+                await new Schema({
+                    Guild: interaction.guild.id,
+                    User: target.id,
+                    Parent: author.username
+                }).save();
+            }
 
             client.embed({
                 title: `👪・Adoption - Approved`,

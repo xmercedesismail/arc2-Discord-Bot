@@ -10,47 +10,34 @@ module.exports = async (client, interaction, args) => {
 
     if (author.id == target.id) return client.errNormal({ error: "You cannot marry yourself!", type: 'editreply' }, interaction);
 
-    Schema.findOne({ Guild: interaction.guild.id, Partner: author.id }, async (err, data) => {
-        if (data) {
-            client.errNormal({ error: "Someone in the couple is already married!", type: 'editreply' }, interaction);
+    const authorPartner = await Schema.findOne({ Guild: interaction.guild.id, Partner: author.id });
+    if (authorPartner) {
+        return client.errNormal({ error: "Someone in the couple is already married!", type: 'editreply' }, interaction);
+    }
+
+    const targetPartner = await Schema.findOne({ Guild: interaction.guild.id, Partner: target.id });
+    if (targetPartner) {
+        return client.errNormal({ error: "Someone in the couple is already married!", type: 'editreply' }, interaction);
+    }
+
+    const targetAsChild = await Schema.findOne({ Guild: interaction.guild.id, User: target.id, Parent: author.id });
+    if (targetAsChild) {
+        return client.errNormal({ error: "You cannot marry a family member!", type: 'editreply' }, interaction);
+    }
+
+    const authorAsChild = await Schema.findOne({ Guild: interaction.guild.id, User: author.id, Parent: target.id });
+    if (authorAsChild) {
+        return client.errNormal({ error: "You cannot marry a family member!", type: 'editreply' }, interaction);
+    }
+
+    const authorData = await Schema.findOne({ Guild: interaction.guild.id, User: author.id });
+    if (authorData) {
+        if (authorData.Children.includes(target.id)) {
+            return client.errNormal({ error: "You cannot marry a family member!", type: 'editreply' }, interaction);
         }
-        else {
-            Schema.findOne({ Guild: interaction.guild.id, Partner: target.id }, async (err, data) => {
-                if (data) {
-                    client.errNormal({ error: "Someone in the couple is already married!", type: 'editreply' }, interaction);
-                }
-                else {
-                    Schema.findOne({ Guild: interaction.guild.id, User: target.id, Parent: author.id }, async (err, data) => {
-                        if (data) {
-                            client.errNormal({ error: "You cannot marry a family member!", type: 'editreply' }, interaction);
-                        }
-                        else {
-                            Schema.findOne({ Guild: interaction.guild.id, User: author.id, Parent: target.id }, async (err, data) => {
-                                if (data) {
-                                    client.errNormal({ error: "You cannot marry a family member!", type: 'editreply' }, interaction);
-                                }
-                                else {
-                                    Schema.findOne({ Guild: interaction.guild.id, User: author.id }, async (err, data) => {
-                                        if (data) {
-                                            if (data.Children.includes(target.id)) {
-                                                client.errNormal({ error: "You cannot marry a family member!", type: 'editreply' }, interaction);
-                                            }
-                                            else {
-                                                propose();
-                                            }
-                                        }
-                                        else {
-                                            propose();
-                                        }
-                                    })
-                                }
-                            })
-                        }
-                    })
-                }
-            })
-        }
-    })
+    }
+
+    propose();
 
     function propose() {
         const row = new Discord.ActionRowBuilder()
@@ -79,33 +66,31 @@ module.exports = async (client, interaction, args) => {
         interaction.channel.awaitMessageComponent({ filter, componentType: Discord.ComponentType.Button, time: 60000 }).then(async i => {
             if (i.customId == "propose_accept") {
 
-                Schema.findOne({ Guild: interaction.guild.id, User: author.id }, async (err, data) => {
-                    if (data) {
-                        data.Partner = target.id
-                        data.save();
-                    }
-                    else {
-                        new Schema({
-                            Guild: interaction.guild.id,
-                            User: author.id,
-                            Partner: target.id
-                        }).save();
-                    }
-                })
+                const data = await Schema.findOne({ Guild: interaction.guild.id, User: author.id });
+                if (data) {
+                    data.Partner = target.id;
+                    await data.save();
+                }
+                else {
+                    await new Schema({
+                        Guild: interaction.guild.id,
+                        User: author.id,
+                        Partner: target.id
+                    }).save();
+                }
 
-                Schema.findOne({ Guild: interaction.guild.id, User: target.id }, async (err, data) => {
-                    if (data) {
-                        data.Partner = author.id
-                        data.save();
-                    }
-                    else {
-                        new Schema({
-                            Guild: interaction.guild.id,
-                            User: target.id,
-                            Partner: author.id
-                        }).save();
-                    }
-                })
+                const targetData = await Schema.findOne({ Guild: interaction.guild.id, User: target.id });
+                if (targetData) {
+                    targetData.Partner = author.id;
+                    await targetData.save();
+                }
+                else {
+                    await new Schema({
+                        Guild: interaction.guild.id,
+                        User: target.id,
+                        Partner: author.id
+                    }).save();
+                }
 
                 client.embed({
                     title: `👰・Marriage proposal - Approved`,
